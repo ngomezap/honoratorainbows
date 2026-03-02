@@ -1,5 +1,6 @@
 import './App.css'
 import { useEffect, useState } from 'react'
+import { SquarePen, Trash2 } from 'lucide-react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { poems as fallbackPoems, type Poem, type PoemType } from './data/poems'
 
@@ -334,20 +335,24 @@ function AdminPage() {
             </div>
             <div className="admin-card-actions">
               <button
-                className="ghost-button"
+                className="icon-button"
                 type="button"
                 onClick={() => openEditModal(poem)}
                 disabled={isSubmitting}
+                aria-label={`Editar ${poem.title}`}
+                title="Editar"
               >
-                Editar
+                <SquarePen size={16} aria-hidden="true" />
               </button>
               <button
-                className="danger-button"
+                className="icon-button icon-button--danger"
                 type="button"
                 onClick={() => void handleDelete(poem.slug)}
                 disabled={isSubmitting}
+                aria-label={`Borrar ${poem.title}`}
+                title="Borrar"
               >
-                Borrar
+                <Trash2 size={16} aria-hidden="true" />
               </button>
             </div>
           </article>

@@ -163,20 +163,37 @@ h2 {
   cursor: pointer;
 }
 
-.danger-button {
-  border: 1px solid #b9877f;
-  background: #f1dbd7;
-  color: #5e2f2a;
-  border-radius: 6px;
-  padding: 0.55rem 0.8rem;
-  font: inherit;
-  cursor: pointer;
-}
-
 .admin-card-actions {
   margin-top: 0.9rem;
   display: flex;
   gap: 0.6rem;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid #c4b8a5;
+  background: transparent;
+  color: var(--soft-ink);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: #eee7da;
+}
+
+.icon-button--danger {
+  border-color: #b9877f;
+  color: #5e2f2a;
+  background: #f1dbd7;
+}
+
+.icon-button--danger:hover {
+  background: #ebcbc4;
 }
 
 .poem-form button:disabled {
