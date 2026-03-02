@@ -206,7 +206,6 @@ function AdminPage() {
       <header className="hero">
         <p className="eyebrow">Panel de gestion</p>
         <h1>Admin</h1>
-        <p className="intro">Mismo feed, con acciones de gestion para publicar poemas.</p>
       </header>
 
       <section className="admin-actions" aria-label="Acciones de administracion">
