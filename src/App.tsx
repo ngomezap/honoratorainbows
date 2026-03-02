@@ -197,6 +197,7 @@ function HomePage() {
 function AdminPage() {
   const { poems, isLoading, error, reloadPoems } = useApiPoems()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [textType, setTextType] = useState<PoemType>('poem')
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [editingSlug, setEditingSlug] = useState<string | null>(null)
@@ -204,6 +205,7 @@ function AdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   function resetForm() {
+    setTextType('poem')
     setTitle('')
     setBody('')
     setEditingSlug(null)
@@ -217,6 +219,7 @@ function AdminPage() {
 
   function openEditModal(poem: ApiPoem) {
     setEditingSlug(poem.slug)
+    setTextType(poem.type ?? 'poem')
     setTitle(poem.title)
     setBody(poem.body)
     setSubmitError(null)
@@ -270,6 +273,7 @@ function AdminPage() {
         },
         body: JSON.stringify({
           slug,
+          type: textType,
           title: cleanTitle,
           body: cleanBody,
         }),
@@ -391,6 +395,17 @@ function AdminPage() {
             </header>
 
             <form className="poem-form" onSubmit={handleSubmit}>
+              <label htmlFor="poem-type">Tipo</label>
+              <select
+                id="poem-type"
+                name="type"
+                value={textType}
+                onChange={(event) => setTextType(event.target.value as PoemType)}
+              >
+                <option value="poem">Poema</option>
+                <option value="quote">Quote</option>
+              </select>
+
               <label htmlFor="poem-title">Titulo</label>
               <input
                 id="poem-title"

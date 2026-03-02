@@ -132,6 +132,7 @@ h2 {
 }
 
 .poem-form input,
+.poem-form select,
 .poem-form textarea {
   width: 100%;
   border: 1px solid #cabfae;
