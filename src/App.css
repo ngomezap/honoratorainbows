@@ -79,6 +79,14 @@ h1 {
   max-width: 56rem;
 }
 
+.admin-actions {
+  margin: 0 auto 1.4rem;
+  max-width: 56rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
 .poem-card {
   background: rgba(255, 255, 255, 0.5);
   border: 1px solid var(--line);
@@ -145,26 +153,61 @@ h2 {
   cursor: pointer;
 }
 
+.ghost-button {
+  border: 1px solid #c4b8a5;
+  background: transparent;
+  color: var(--soft-ink);
+  border-radius: 6px;
+  padding: 0.55rem 0.8rem;
+  font: inherit;
+  cursor: pointer;
+}
+
 .poem-form button:disabled {
   cursor: not-allowed;
   opacity: 0.7;
 }
 
-.admin-panel {
-  margin: 0 auto;
-  max-width: 56rem;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 1.2rem;
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(29, 26, 23, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
 }
 
-.form-actions {
-  margin-top: 0.4rem;
+.poem-modal {
+  width: min(100%, 32rem);
+  background: #f9f6ef;
+  border: 1px solid #cfc5b4;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 20px 35px rgba(20, 18, 16, 0.2);
+}
+
+.poem-modal__header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.poem-modal__header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.modal-close {
+  border: 1px solid #b9af9d;
+  background: #f2ecdf;
+  border-radius: 999px;
+  width: 2rem;
+  height: 2rem;
+  line-height: 1;
+  font-size: 1.2rem;
+  cursor: pointer;
 }
 
 .secondary-link {
@@ -179,6 +222,22 @@ h2 {
   padding-top: 0.8rem;
   font-size: 0.85rem;
   color: var(--soft-ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.admin-link {
+  font-size: 0.75rem;
+  color: #7a7368;
+  text-decoration: none;
+  border-bottom: 1px dotted #b6ae9f;
+  opacity: 0.8;
+}
+
+.admin-link:hover {
+  opacity: 1;
 }
 
 @media (max-width: 640px) {
@@ -192,8 +251,17 @@ h2 {
     text-align: center;
   }
 
-  .form-actions {
-    flex-direction: column-reverse;
+  .admin-actions {
+    flex-direction: column;
     align-items: stretch;
+  }
+
+  .secondary-link {
+    text-align: center;
+  }
+
+  .page-footer {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

@@ -1,6 +1,6 @@
 import './App.css'
 import { useEffect, useState } from 'react'
-import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { poems as fallbackPoems, type Poem, type PoemType } from './data/poems'
 
 const POEMS_API_URL = '/api/poems'
@@ -61,45 +61,66 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, '')
 }
 
-function HomePage() {
+function usePoems() {
   const [poems, setPoems] = useState<Poem[]>(fallbackPoems)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  async function loadPoems(signal?: AbortSignal) {
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      const response = await fetch(POEMS_API_URL, { signal })
+      if (!response.ok) {
+        throw new Error(`La API devolvio ${response.status}`)
+      }
+
+      const payload = (await response.json()) as unknown
+      const normalized = normalizePoems(payload)
+      if (normalized.length === 0) {
+        throw new Error('La API no devolvio poemas validos')
+      }
+
+      setPoems(normalized)
+    } catch (err) {
+      if ((err as DOMException).name !== 'AbortError') {
+        setError('No se pudo cargar la API, mostrando poemas locales.')
+        setPoems(fallbackPoems)
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   useEffect(() => {
     const controller = new AbortController()
-
-    async function loadPoems() {
-      try {
-        setIsLoading(true)
-        setError(null)
-
-        const response = await fetch(POEMS_API_URL, { signal: controller.signal })
-        if (!response.ok) {
-          throw new Error(`La API devolvio ${response.status}`)
-        }
-
-        const payload = (await response.json()) as unknown
-        const normalized = normalizePoems(payload)
-        if (normalized.length === 0) {
-          throw new Error('La API no devolvio poemas validos')
-        }
-
-        setPoems(normalized)
-      } catch (err) {
-        if ((err as DOMException).name !== 'AbortError') {
-          setError('No se pudo cargar la API, mostrando poemas locales.')
-          setPoems(fallbackPoems)
-        }
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    void loadPoems()
-
+    void loadPoems(controller.signal)
     return () => controller.abort()
   }, [])
+
+  return { poems, isLoading, error, reloadPoems: () => loadPoems() }
+}
+
+function PoemFeed({ poems }: { poems: Poem[] }) {
+  return (
+    <section className="poem-list" aria-label="Listado de poesias">
+      {poems.map((poem, poemIndex) => (
+        <article className={`poem-card ${poem.type === 'quote' ? 'quote-card' : 'poem-card--poem'}`} key={`${poem.type}-${poem.title ?? poemIndex}`}>
+          {poem.type === 'poem' && poem.title && <h2>{poem.title}</h2>}
+          <div className="poem-lines">
+            {poem.lines.map((line, index) => (
+              <p key={`${poem.type}-${poem.title ?? poemIndex}-${index}`}>{line}</p>
+            ))}
+          </div>
+        </article>
+      ))}
+    </section>
+  )
+}
+
+function HomePage() {
+  const { poems, isLoading, error } = usePoems()
 
   return (
     <main className="poetry-page">
@@ -107,40 +128,29 @@ function HomePage() {
         <p className="eyebrow">Cuaderno digital</p>
         <h1>Honorato Rainbows</h1>
         <p className="intro">
-          Un espacio mínimo para versos breves. Borradores, piezas terminadas y
+          Un espacio minimo para versos breves. Borradores, piezas terminadas y
           notas que aun respiran.
         </p>
       </header>
 
-      <div className="top-actions">
-        <a className="upload-button" href="/admin">
-          Cargar poema
-        </a>
-      </div>
-
       {isLoading && <p className="intro">Cargando poemas desde la API...</p>}
       {error && !isLoading && <p className="intro">{error}</p>}
 
-      <section className="poem-list" aria-label="Listado de poesias">
-        {poems.map((poem, poemIndex) => (
-          <article className={`poem-card ${poem.type === 'quote' ? 'quote-card' : 'poem-card--poem'}`} key={`${poem.type}-${poem.title ?? poemIndex}`}>
-            {poem.type === 'poem' && poem.title && <h2>{poem.title}</h2>}
-            <div className="poem-lines">
-              {poem.lines.map((line, index) => (
-                <p key={`${poem.type}-${poem.title ?? poemIndex}-${index}`}>{line}</p>
-              ))}
-            </div>
-          </article>
-        ))}
-      </section>
+      <PoemFeed poems={poems} />
 
-      <footer className="page-footer">Santander, palabras entre la bruma y la montaña.</footer>
+      <footer className="page-footer">
+        Santander, palabras entre la bruma y la montana.
+        <a className="admin-link" href="/admin">
+          admin
+        </a>
+      </footer>
     </main>
   )
 }
 
 function AdminPage() {
-  const navigate = useNavigate()
+  const { poems, isLoading, error, reloadPoems } = usePoems()
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -182,7 +192,8 @@ function AdminPage() {
 
       setTitle('')
       setBody('')
-      navigate('/')
+      setIsModalOpen(false)
+      await reloadPoems()
     } catch {
       setSubmitError('No se pudo guardar el poema en la API.')
     } finally {
@@ -195,43 +206,77 @@ function AdminPage() {
       <header className="hero">
         <p className="eyebrow">Panel de gestion</p>
         <h1>Admin</h1>
-        <p className="intro">Publica un nuevo poema y vuelve al listado principal.</p>
+        <p className="intro">Mismo feed, con acciones de gestion para publicar poemas.</p>
       </header>
 
-      <section className="admin-panel">
-        <form className="poem-form" onSubmit={handleSubmit}>
-          <label htmlFor="poem-title">Titulo</label>
-          <input
-            id="poem-title"
-            name="title"
-            type="text"
-            placeholder="Ej: Niebla de enero"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-          />
-
-          <label htmlFor="poem-body">Poema</label>
-          <textarea
-            id="poem-body"
-            name="body"
-            rows={9}
-            placeholder="Escribe aqui tus versos"
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-          />
-
-          {submitError && <p className="intro">{submitError}</p>}
-
-          <div className="form-actions">
-            <Link className="secondary-link" to="/">
-              Volver al listado
-            </Link>
-            <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Guardando...' : 'Guardar'}
-            </button>
-          </div>
-        </form>
+      <section className="admin-actions" aria-label="Acciones de administracion">
+        <button className="upload-button" type="button" onClick={() => setIsModalOpen(true)}>
+          Nuevo poema
+        </button>
+        <button className="ghost-button" type="button" onClick={() => void reloadPoems()}>
+          Recargar
+        </button>
+        <a className="secondary-link" href="/">
+          Ver feed publico
+        </a>
       </section>
+
+      {isLoading && <p className="intro">Cargando poemas desde la API...</p>}
+      {error && !isLoading && <p className="intro">{error}</p>}
+
+      <PoemFeed poems={poems} />
+
+      {isModalOpen && (
+        <div className="modal-overlay" role="presentation" onClick={() => setIsModalOpen(false)}>
+          <section
+            className="poem-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="poem-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="poem-modal__header">
+              <h2 id="poem-modal-title">Subir poema</h2>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() => setIsModalOpen(false)}
+                aria-label="Cerrar modal"
+              >
+                x
+              </button>
+            </header>
+
+            <form className="poem-form" onSubmit={handleSubmit}>
+              <label htmlFor="poem-title">Titulo</label>
+              <input
+                id="poem-title"
+                name="title"
+                type="text"
+                placeholder="Ej: Niebla de enero"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+              />
+
+              <label htmlFor="poem-body">Poema</label>
+              <textarea
+                id="poem-body"
+                name="body"
+                rows={7}
+                placeholder="Escribe aqui tus versos"
+                value={body}
+                onChange={(event) => setBody(event.target.value)}
+              />
+
+              {submitError && <p className="intro">{submitError}</p>}
+
+              <button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Guardando...' : 'Guardar'}
+              </button>
+            </form>
+          </section>
+        </div>
+      )}
     </main>
   )
 }
