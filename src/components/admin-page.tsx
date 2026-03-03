@@ -1,111 +1,11 @@
-import './App.css'
+'use client'
+
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { SquarePen, Trash2 } from 'lucide-react'
-import { Navigate, Route, Routes } from 'react-router-dom'
-import { poems as fallbackPoems, type Poem, type PoemType } from './data/poems'
+import { normalizeApiPoems, poemsApiUrl, slugify, type ApiPoem, type PoemType } from '@/lib/poetry'
 
-const POEMS_API_URL = '/api/poems'
-
-type ApiPoem = {
-  slug: string
-  title: string
-  body: string
-  type?: PoemType
-  created_at: string
-}
-
-function isApiPoem(value: unknown): value is ApiPoem {
-  if (!value || typeof value !== 'object') return false
-  const poem = value as Partial<ApiPoem>
-  return (
-    typeof poem.slug === 'string' &&
-    typeof poem.title === 'string' &&
-    typeof poem.body === 'string' &&
-    typeof poem.created_at === 'string'
-  )
-}
-
-function toPoem(apiPoem: ApiPoem): Poem {
-  const lines = apiPoem.body
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-
-  return {
-    type: apiPoem.type ?? 'poem',
-    title: apiPoem.title,
-    lines: lines.length > 0 ? lines : [apiPoem.body],
-  }
-}
-
-function normalizeApiPoems(payload: unknown): ApiPoem[] {
-  if (Array.isArray(payload)) {
-    return payload.filter(isApiPoem)
-  }
-
-  if (payload && typeof payload === 'object') {
-    const data = (payload as { poems?: unknown }).poems
-    if (Array.isArray(data)) {
-      return data.filter(isApiPoem)
-    }
-  }
-
-  return []
-}
-
-function normalizePoems(payload: unknown): Poem[] {
-  return normalizeApiPoems(payload).map(toPoem)
-}
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
-
-function usePoems() {
-  const [poems, setPoems] = useState<Poem[]>(fallbackPoems)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  async function loadPoems(signal?: AbortSignal) {
-    try {
-      setIsLoading(true)
-      setError(null)
-
-      const response = await fetch(POEMS_API_URL, { signal })
-      if (!response.ok) {
-        throw new Error(`La API devolvio ${response.status}`)
-      }
-
-      const payload = (await response.json()) as unknown
-      const normalized = normalizePoems(payload)
-      if (normalized.length === 0) {
-        throw new Error('La API no devolvio poemas validos')
-      }
-
-      setPoems(normalized)
-    } catch (err) {
-      if ((err as DOMException).name !== 'AbortError') {
-        setError('No se pudo cargar la API, mostrando poemas locales.')
-        setPoems(fallbackPoems)
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    const controller = new AbortController()
-    void loadPoems(controller.signal)
-    return () => controller.abort()
-  }, [])
-
-  return { poems, isLoading, error, reloadPoems: () => loadPoems() }
-}
+const POEMS_API_URL = poemsApiUrl()
 
 function useApiPoems() {
   const [poems, setPoems] = useState<ApiPoem[]>([])
@@ -148,53 +48,7 @@ function useApiPoems() {
   return { poems, isLoading, error, reloadPoems: () => loadPoems() }
 }
 
-function PoemFeed({ poems }: { poems: Poem[] }) {
-  return (
-    <section className="poem-list" aria-label="Listado de poesias">
-      {poems.map((poem, poemIndex) => (
-        <article className={`poem-card ${poem.type === 'quote' ? 'quote-card' : 'poem-card--poem'}`} key={`${poem.type}-${poem.title ?? poemIndex}`}>
-          {poem.type === 'poem' && poem.title && <h2>{poem.title}</h2>}
-          <div className="poem-lines">
-            {poem.lines.map((line, index) => (
-              <p key={`${poem.type}-${poem.title ?? poemIndex}-${index}`}>{line}</p>
-            ))}
-          </div>
-        </article>
-      ))}
-    </section>
-  )
-}
-
-function HomePage() {
-  const { poems, isLoading, error } = usePoems()
-
-  return (
-    <main className="poetry-page">
-      <header className="hero">
-        <p className="eyebrow">Cuaderno digital</p>
-        <h1>Honorato Rainbows</h1>
-        <p className="intro">
-          Un espacio minimo para versos breves. Borradores, piezas terminadas y
-          notas que aun respiran.
-        </p>
-      </header>
-
-      {isLoading && <p className="intro">Cargando poemas desde la API...</p>}
-      {error && !isLoading && <p className="intro">{error}</p>}
-
-      <PoemFeed poems={poems} />
-
-      <footer className="page-footer">
-        Santander, palabras entre la bruma y la montana.
-        <a className="admin-link" href="/admin">
-          admin
-        </a>
-      </footer>
-    </main>
-  )
-}
-
-function AdminPage() {
+export function AdminPage() {
   const { poems, isLoading, error, reloadPoems } = useApiPoems()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [textType, setTextType] = useState<PoemType>('poem')
@@ -311,14 +165,13 @@ function AdminPage() {
         <button className="ghost-button" type="button" onClick={() => void reloadPoems()}>
           Recargar
         </button>
-        <a className="secondary-link" href="/">
+        <Link className="secondary-link" href="/">
           Ver feed publico
-        </a>
+        </Link>
       </section>
 
       {isLoading && <p className="intro">Cargando poemas desde la API...</p>}
       {error && !isLoading && <p className="intro">{error}</p>}
-
       {submitError && !isModalOpen && <p className="intro">{submitError}</p>}
 
       <section className="poem-list" aria-label="Listado de poesias en admin">
@@ -438,15 +291,3 @@ function AdminPage() {
     </main>
   )
 }
-
-function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/admin" element={<AdminPage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  )
-}
-
-export default App
