@@ -1,7 +1,5 @@
 import { apiResponse, getDb, parsePayload, readJsonPayload, type PoemRecord } from '@/lib/poems-api'
 
-export const runtime = 'edge'
-
 export async function GET() {
   const db = await getDb()
   const { results } = await db.prepare('SELECT * FROM poems ORDER BY created_at DESC').all<PoemRecord>()

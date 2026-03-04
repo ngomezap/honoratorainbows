@@ -1,7 +1,5 @@
 import { apiResponse, getDb, parsePayload, readJsonPayload, type PoemRecord } from '@/lib/poems-api'
 
-export const runtime = 'edge'
-
 type Params = { params: Promise<{ slug: string }> }
 
 export async function GET(_: Request, { params }: Params) {
