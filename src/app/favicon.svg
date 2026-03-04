@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="HR favicon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#706a3b"/>
+      <stop offset="1" stop-color="#e6d4ad"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <g fill="none" stroke="#ffffff" stroke-width="6.5" stroke-linecap="square" stroke-linejoin="round">
+    <path d="M12 12v40"/>
+    <path d="M30 12v40"/>
+    <path d="M15 30h15"/>
+    <path d="M30 12h13a9 9 0 0 1 0 18H30"/>
+    <path d="M38 32l13 20"/>
+  </g>
+</svg>
