@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { siteDescription, siteName, siteUrl } from '@/lib/site'
+import { siteConfig, siteUrl } from '@/lib/site-config'
 import './globals.css'
 
 const geistSans = Geist({
@@ -16,25 +16,25 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: {
-    default: siteName,
-    template: `%s | ${siteName}`,
+    default: siteConfig.name,
+    template: `%s | ${siteConfig.name}`,
   },
-  description: siteDescription,
+  description: siteConfig.description,
   alternates: {
     canonical: '/',
   },
   openGraph: {
     type: 'website',
-    siteName,
-    title: siteName,
-    description: siteDescription,
+    siteName: siteConfig.name,
+    title: siteConfig.name,
+    description: siteConfig.description,
     url: '/',
-    locale: 'es_ES',
+    locale: siteConfig.locale,
   },
   twitter: {
     card: 'summary_large_image',
-    title: siteName,
-    description: siteDescription,
+    title: siteConfig.name,
+    description: siteConfig.description,
   },
 }
 
@@ -44,8 +44,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang={siteConfig.language}>
+      <body className={`${geistSans.variable} ${geistMono.variable}`} data-theme={siteConfig.theme}>
         {children}
       </body>
     </html>

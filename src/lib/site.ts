@@ -1,7 +1,8 @@
+import { siteConfig } from '@/lib/site-config'
+
 export function siteUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? 'https://honoratorainbows.com'
+  return siteConfig.baseUrl
 }
 
-export const siteName = 'Honorato Rainbows'
-export const siteDescription =
-  'Cuaderno digital de versos breves: borradores, piezas terminadas y notas que aun respiran.'
+export const siteName = siteConfig.name
+export const siteDescription = siteConfig.description

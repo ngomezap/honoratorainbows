@@ -23,5 +23,18 @@
 		// Enable image optimization
 		// see https://opennext.js.org/cloudflare/howtos/image
 		"binding": "IMAGES"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "honoratorainbows_db",
+			"database_id": "12af607d-067d-4152-bab4-accc6164d97b"
+		}
+	],
+	"observability": {
+		"logs": {
+		"enabled": false,
+		"invocation_logs": true
+		}
 	}
 }

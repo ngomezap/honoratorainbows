@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { SquarePen, Trash2 } from 'lucide-react'
-import { normalizeApiPoems, poemsApiUrl, slugify, type ApiPoem, type PoemType } from '@/lib/poetry'
+import { normalizeApiEntries, entriesApiUrl, slugify, type ApiEntry, type ContentKind } from '@/lib/content'
+import { siteConfig } from '@/lib/site-config'
 
-const POEMS_API_URL = poemsApiUrl()
+const POEMS_API_URL = entriesApiUrl()
 
 function useApiPoems() {
-  const [poems, setPoems] = useState<ApiPoem[]>([])
+  const [poems, setPoems] = useState<ApiEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -23,7 +24,7 @@ function useApiPoems() {
       }
 
       const payload = (await response.json()) as unknown
-      const normalized = normalizeApiPoems(payload)
+      const normalized = normalizeApiEntries(payload)
       if (normalized.length === 0) {
         throw new Error('La API no devolvio poemas validos')
       }
@@ -51,7 +52,7 @@ function useApiPoems() {
 export function AdminPage() {
   const { poems, isLoading, error, reloadPoems } = useApiPoems()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [textType, setTextType] = useState<PoemType>('poem')
+  const [textType, setTextType] = useState<ContentKind>('poem')
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [editingSlug, setEditingSlug] = useState<string | null>(null)
@@ -71,7 +72,7 @@ export function AdminPage() {
     setIsModalOpen(true)
   }
 
-  function openEditModal(poem: ApiPoem) {
+  function openEditModal(poem: ApiEntry) {
     setEditingSlug(poem.slug)
     setTextType(poem.type ?? 'poem')
     setTitle(poem.title)
@@ -160,17 +161,17 @@ export function AdminPage() {
 
       <section className="admin-actions" aria-label="Acciones de administracion">
         <button className="upload-button" type="button" onClick={openCreateModal}>
-          Nuevo poema
+          {siteConfig.labels.adminNewItem}
         </button>
         <button className="ghost-button" type="button" onClick={() => void reloadPoems()}>
           Recargar
         </button>
         <Link className="secondary-link" href="/">
-          Ver feed publico
+          {siteConfig.labels.adminPublicFeed}
         </Link>
       </section>
 
-      {isLoading && <p className="intro">Cargando poemas desde la API...</p>}
+      {isLoading && <p className="intro">{siteConfig.labels.adminLoading}</p>}
       {error && !isLoading && <p className="intro">{error}</p>}
       {submitError && !isModalOpen && <p className="intro">{submitError}</p>}
 
@@ -253,10 +254,10 @@ export function AdminPage() {
                 id="poem-type"
                 name="type"
                 value={textType}
-                onChange={(event) => setTextType(event.target.value as PoemType)}
+                onChange={(event) => setTextType(event.target.value as ContentKind)}
               >
-                <option value="poem">Poema</option>
-                <option value="quote">Quote</option>
+                <option value="poem">{siteConfig.labels.adminTypePoem}</option>
+                <option value="quote">{siteConfig.labels.adminTypeQuote}</option>
               </select>
 
               <label htmlFor="poem-title">Titulo</label>
@@ -269,7 +270,7 @@ export function AdminPage() {
                 onChange={(event) => setTitle(event.target.value)}
               />
 
-              <label htmlFor="poem-body">Poema</label>
+              <label htmlFor="poem-body">{siteConfig.labels.adminBody}</label>
               <textarea
                 id="poem-body"
                 name="body"

@@ -1,11 +1,11 @@
 import './app.css'
 import type { Metadata } from 'next'
 import { HomePage } from '@/components/home-page'
-import { siteDescription, siteName } from '@/lib/site'
+import { siteConfig } from '@/lib/site-config'
 
 export const metadata: Metadata = {
-  title: siteName,
-  description: siteDescription,
+  title: siteConfig.name,
+  description: siteConfig.description,
   alternates: {
     canonical: '/',
   },

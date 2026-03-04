@@ -1,10 +1,15 @@
 import Link from 'next/link'
-import { fallbackPoems, normalizePoems, poemsApiUrl, type Poem } from '@/lib/poetry'
-import { siteDescription, siteName, siteUrl } from '@/lib/site'
+import {
+  entriesApiUrl,
+  fallbackContentEntries,
+  normalizeContentEntries,
+  type ContentEntry,
+} from '@/lib/content'
+import { siteConfig, siteUrl } from '@/lib/site-config'
 
-async function loadPoems(): Promise<{ poems: Poem[]; error: string | null }> {
+async function loadContentEntries(): Promise<{ entries: ContentEntry[]; error: string | null }> {
   try {
-    const response = await fetch(poemsApiUrl(), {
+    const response = await fetch(new URL(entriesApiUrl(), siteUrl()).toString(), {
       next: { revalidate: 60 },
     })
 
@@ -13,33 +18,33 @@ async function loadPoems(): Promise<{ poems: Poem[]; error: string | null }> {
     }
 
     const payload = (await response.json()) as unknown
-    const poems = normalizePoems(payload)
+    const entries = normalizeContentEntries(payload)
 
-    if (poems.length === 0) {
+    if (entries.length === 0) {
       throw new Error('La API no devolvio poemas validos')
     }
 
-    return { poems, error: null }
+    return { entries, error: null }
   } catch {
     return {
-      poems: fallbackPoems,
+      entries: fallbackContentEntries,
       error: 'No se pudo cargar la API, mostrando poemas locales.',
     }
   }
 }
 
-function PoemFeed({ poems }: { poems: Poem[] }) {
+function PoemFeed({ entries }: { entries: ContentEntry[] }) {
   return (
     <section className="poem-list" aria-label="Listado de poesias">
-      {poems.map((poem, poemIndex) => (
+      {entries.map((entry, entryIndex) => (
         <article
-          className={`poem-card ${poem.type === 'quote' ? 'quote-card' : 'poem-card--poem'}`}
-          key={`${poem.type}-${poem.title ?? poemIndex}`}
+          className={`poem-card ${entry.kind === 'quote' ? 'quote-card' : 'poem-card--poem'}`}
+          key={`${entry.kind}-${entry.title ?? entryIndex}`}
         >
-          {poem.type === 'poem' && poem.title && <h2>{poem.title}</h2>}
+          {entry.kind === 'poem' && entry.title && <h2>{entry.title}</h2>}
           <div className="poem-lines">
-            {poem.lines.map((line, index) => (
-              <p key={`${poem.type}-${poem.title ?? poemIndex}-${index}`}>{line}</p>
+            {entry.lines.map((line, index) => (
+              <p key={`${entry.kind}-${entry.title ?? entryIndex}-${index}`}>{line}</p>
             ))}
           </div>
         </article>
@@ -49,34 +54,31 @@ function PoemFeed({ poems }: { poems: Poem[] }) {
 }
 
 export async function HomePage() {
-  const { poems, error } = await loadPoems()
+  const { entries, error } = await loadContentEntries()
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: siteName,
-    description: siteDescription,
+    name: siteConfig.name,
+    description: siteConfig.description,
     url: siteUrl(),
-    inLanguage: 'es',
+    inLanguage: siteConfig.language,
   }
 
   return (
     <main className="poetry-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <header className="hero">
-        <p className="eyebrow">Cuaderno digital</p>
-        <h1>Honorato Rainbows</h1>
-        <p className="intro">
-          Un espacio minimo para versos breves. Borradores, piezas terminadas y notas que aun
-          respiran.
-        </p>
+        <p className="eyebrow">{siteConfig.brand.eyebrow}</p>
+        <h1>{siteConfig.brand.heroTitle}</h1>
+        <p className="intro">{siteConfig.brand.heroIntro}</p>
       </header>
 
       {error && <p className="intro">{error}</p>}
 
-      <PoemFeed poems={poems} />
+      <PoemFeed entries={entries} />
 
       <footer className="page-footer">
-        Santander, palabras entre la bruma y la montana.
+        {siteConfig.brand.footerLocation}
         <Link className="admin-link" href="/admin">
           admin
         </Link>

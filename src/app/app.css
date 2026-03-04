@@ -3,6 +3,60 @@
   --ink: #262421;
   --soft-ink: #5f5a53;
   --line: #d8d2c8;
+  --accent-border: #a69b88;
+  --accent-fill: #eee7da;
+  --accent-fill-hover: #e4dbc9;
+  --quote-border: #b8ad9b;
+  --danger-border: #b9877f;
+  --danger-ink: #5e2f2a;
+  --danger-fill: #f1dbd7;
+  --danger-fill-hover: #ebcbc4;
+  --overlay: rgba(29, 26, 23, 0.45);
+  --hero-radial-a: rgba(214, 202, 184, 0.4);
+  --hero-radial-b: rgba(225, 216, 201, 0.45);
+}
+
+body[data-theme='poet'] {
+  --paper: #f6f3ea;
+  --ink: #262421;
+  --soft-ink: #5f5a53;
+  --line: #d8d2c8;
+}
+
+body[data-theme='music'] {
+  --paper: #f3f4f6;
+  --ink: #121827;
+  --soft-ink: #4b5563;
+  --line: #cfd6e0;
+  --accent-border: #1f4f8f;
+  --accent-fill: #e7effb;
+  --accent-fill-hover: #d8e6fb;
+  --quote-border: #3e63a8;
+  --danger-border: #a11b38;
+  --danger-ink: #5f0f22;
+  --danger-fill: #f6d9df;
+  --danger-fill-hover: #f0c8d1;
+  --overlay: rgba(12, 18, 33, 0.45);
+  --hero-radial-a: rgba(77, 110, 162, 0.25);
+  --hero-radial-b: rgba(143, 173, 223, 0.22);
+}
+
+body[data-theme='photo'] {
+  --paper: #f7f8f5;
+  --ink: #1f2a22;
+  --soft-ink: #526155;
+  --line: #d4dccf;
+  --accent-border: #567a57;
+  --accent-fill: #e8f1e6;
+  --accent-fill-hover: #dcebd8;
+  --quote-border: #789873;
+  --danger-border: #9f5e50;
+  --danger-ink: #5d322a;
+  --danger-fill: #f4dfd8;
+  --danger-fill-hover: #ecd0c7;
+  --overlay: rgba(26, 33, 26, 0.45);
+  --hero-radial-a: rgba(146, 179, 141, 0.2);
+  --hero-radial-b: rgba(193, 214, 185, 0.25);
 }
 
 #root {
@@ -13,8 +67,8 @@
   min-height: 100vh;
   padding: clamp(2rem, 4vw, 4rem) clamp(1.2rem, 4vw, 5rem);
   background:
-    radial-gradient(circle at 90% 0%, rgba(214, 202, 184, 0.4), transparent 40%),
-    radial-gradient(circle at 5% 80%, rgba(225, 216, 201, 0.45), transparent 45%),
+    radial-gradient(circle at 90% 0%, var(--hero-radial-a), transparent 40%),
+    radial-gradient(circle at 5% 80%, var(--hero-radial-b), transparent 45%),
     var(--paper);
   color: var(--ink);
   font-family: 'Courier Prime', 'Courier New', Courier, monospace;
@@ -49,8 +103,8 @@ h1 {
 
 .upload-button {
   display: inline-block;
-  border: 1px solid #a69b88;
-  background: #eee7da;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-fill);
   color: var(--ink);
   border-radius: 999px;
   padding: 0.55rem 1rem;
@@ -62,7 +116,7 @@ h1 {
 }
 
 .upload-button:hover {
-  background: #e4dbc9;
+  background: var(--accent-fill-hover);
   transform: translateY(-1px);
 }
 
@@ -97,7 +151,7 @@ h1 {
 
 .quote-card {
   background: rgba(255, 255, 255, 0.65);
-  border-left: 3px solid #b8ad9b;
+  border-left: 3px solid var(--quote-border);
 }
 
 h2 {
@@ -145,8 +199,8 @@ h2 {
 }
 
 .poem-form button {
-  border: 1px solid #a69b88;
-  background: #eee7da;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-fill);
   color: var(--ink);
   border-radius: 6px;
   padding: 0.55rem 0.8rem;
@@ -184,17 +238,17 @@ h2 {
 }
 
 .icon-button:hover {
-  background: #eee7da;
+  background: var(--accent-fill);
 }
 
 .icon-button--danger {
-  border-color: #b9877f;
-  color: #5e2f2a;
-  background: #f1dbd7;
+  border-color: var(--danger-border);
+  color: var(--danger-ink);
+  background: var(--danger-fill);
 }
 
 .icon-button--danger:hover {
-  background: #ebcbc4;
+  background: var(--danger-fill-hover);
 }
 
 .poem-form button:disabled {
@@ -205,7 +259,7 @@ h2 {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(29, 26, 23, 0.45);
+  background: var(--overlay);
   display: grid;
   place-items: center;
   padding: 1rem;
