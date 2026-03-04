@@ -1,4 +1,4 @@
-export type SiteTheme = 'poet' | 'music' | 'photo'
+export type SiteTheme = 'poet' | 'producer-dark' | 'musician' | 'music' | 'photo'
 
 export type SiteConfig = {
   name: string
@@ -32,7 +32,7 @@ export const siteConfig: SiteConfig = {
   baseUrl: process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_BASE_URL,
   locale: 'es_ES',
   language: 'es',
-  theme: 'poet',
+  theme: 'producer-dark',
   brand: {
     eyebrow: 'Cuaderno digital',
     heroTitle: 'Honorato Rainbows',
