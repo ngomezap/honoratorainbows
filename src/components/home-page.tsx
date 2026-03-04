@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { PieceFeed } from '@/components/piece-feed'
+import { pieces } from '@/data/pieces'
 import {
   entriesApiUrl,
   fallbackContentEntries,
@@ -7,7 +9,7 @@ import {
 } from '@/lib/content'
 import { siteConfig, siteUrl } from '@/lib/site-config'
 
-async function loadContentEntries(): Promise<{ entries: ContentEntry[]; error: string | null }> {
+async function loadPoetEntries(): Promise<{ entries: ContentEntry[]; error: string | null }> {
   try {
     const response = await fetch(new URL(entriesApiUrl(), siteUrl()).toString(), {
       next: { revalidate: 60 },
@@ -53,8 +55,21 @@ function EntryFeed({ entries }: { entries: ContentEntry[] }) {
   )
 }
 
+
+function PoetFeed({ entries, error }: { entries: ContentEntry[]; error: string | null }) {
+  return (
+    <>
+      {error && <p className="intro">{error}</p>}
+      <EntryFeed entries={entries} />
+    </>
+  )
+}
+
 export async function HomePage() {
-  const { entries, error } = await loadContentEntries()
+  const isProducerProfile = siteConfig.profile === 'producer'
+  const { entries, error } = isProducerProfile
+    ? { entries: [] as ContentEntry[], error: null }
+    : await loadPoetEntries()
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -73,9 +88,7 @@ export async function HomePage() {
         <p className="intro">{siteConfig.brand.heroIntro}</p>
       </header>
 
-      {error && <p className="intro">{error}</p>}
-
-      <EntryFeed entries={entries} />
+      {isProducerProfile ? <PieceFeed pieces={pieces} /> : <PoetFeed entries={entries} error={error} />}
 
       <footer className="page-footer">
         {siteConfig.brand.footerLocation}

@@ -239,6 +239,42 @@ h2 {
   margin-top: 0.3rem;
 }
 
+.piece-hero {
+  margin-top: 2.4rem;
+  margin-bottom: 1.3rem;
+}
+
+.piece-hero h2 {
+  margin: 0.6rem 0 0.7rem;
+  font-size: clamp(1.3rem, 4vw, 1.8rem);
+}
+
+.piece-list {
+  margin-top: 0;
+}
+
+.piece-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.piece-description {
+  margin: 0;
+  color: var(--entry-text);
+  line-height: 1.55;
+}
+
+.piece-audio {
+  width: 100%;
+}
+
+.pending-audio {
+  margin: 0;
+  color: var(--soft-ink);
+  font-size: 0.92rem;
+}
+
 .entry-form {
   display: grid;
   gap: 0.6rem;
