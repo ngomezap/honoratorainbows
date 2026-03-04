@@ -3,11 +3,13 @@ import { contentEntries, type ContentEntry, type ContentKind } from '@/data/cont
 export type { ContentEntry, ContentKind }
 export { contentEntries as fallbackContentEntries }
 
+type ApiEntryType = 'poem' | 'quote'
+
 export type ApiEntry = {
   slug: string
   title: string
   body: string
-  type?: ContentKind
+  type?: ApiEntryType
   created_at: string
 }
 
@@ -37,7 +39,7 @@ export function toContentEntry(apiEntry: ApiEntry): ContentEntry {
     .filter((line) => line.length > 0)
 
   return {
-    kind: apiEntry.type ?? 'poem',
+    kind: (apiEntry.type ?? 'poem') === 'poem' ? 'text' : 'quote',
     title: apiEntry.title,
     lines: lines.length > 0 ? lines : [apiEntry.body],
   }
@@ -60,6 +62,18 @@ export function normalizeApiEntries(payload: unknown): ApiEntry[] {
 
 export function normalizeContentEntries(payload: unknown): ContentEntry[] {
   return normalizeApiEntries(payload).map(toContentEntry)
+}
+
+export function toApiEntryType(kind: ContentKind): ApiEntryType {
+  return kind === 'text' ? 'poem' : 'quote'
+}
+
+export function toContentKind(type?: ApiEntryType): ContentKind {
+  return (type ?? 'poem') === 'poem' ? 'text' : 'quote'
+}
+
+export function isApiQuote(type?: ApiEntryType): boolean {
+  return type === 'quote'
 }
 
 export function slugify(value: string) {

@@ -1,4 +1,4 @@
-export type ContentKind = 'poem' | 'quote'
+export type ContentKind = 'text' | 'quote'
 
 export type ContentEntry = {
   kind: ContentKind
@@ -12,7 +12,7 @@ export const contentEntries: ContentEntry[] = [
     lines: ['"La unica carrera que me interesa', 'es la de tus medias"'],
   },
   {
-    kind: 'poem',
+    kind: 'text',
     title: 'Ruido de taza',
     lines: [
       'La manana cabe en una taza pequena,',
@@ -22,7 +22,7 @@ export const contentEntries: ContentEntry[] = [
     ],
   },
   {
-    kind: 'poem',
+    kind: 'text',
     title: 'Ventana de febrero',
     lines: [
       'La luz entra en puntillas,',
@@ -32,7 +32,7 @@ export const contentEntries: ContentEntry[] = [
     ],
   },
   {
-    kind: 'poem',
+    kind: 'text',
     title: 'Papel doblado',
     lines: [
       'Guardo palabras en el bolsillo,',

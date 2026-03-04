@@ -3,17 +3,26 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { SquarePen, Trash2 } from 'lucide-react'
-import { normalizeApiEntries, entriesApiUrl, slugify, type ApiEntry, type ContentKind } from '@/lib/content'
+import {
+  normalizeApiEntries,
+  entriesApiUrl,
+  isApiQuote,
+  slugify,
+  toContentKind,
+  toApiEntryType,
+  type ApiEntry,
+  type ContentKind,
+} from '@/lib/content'
 import { siteConfig } from '@/lib/site-config'
 
 const POEMS_API_URL = entriesApiUrl()
 
-function useApiPoems() {
-  const [poems, setPoems] = useState<ApiEntry[]>([])
+function useApiEntries() {
+  const [entries, setEntries] = useState<ApiEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  async function loadPoems(signal?: AbortSignal) {
+  async function loadEntries(signal?: AbortSignal) {
     try {
       setIsLoading(true)
       setError(null)
@@ -26,14 +35,14 @@ function useApiPoems() {
       const payload = (await response.json()) as unknown
       const normalized = normalizeApiEntries(payload)
       if (normalized.length === 0) {
-        throw new Error('La API no devolvio poemas validos')
+        throw new Error('La API no devolvio contenido valido')
       }
 
-      setPoems(normalized)
+      setEntries(normalized)
     } catch (err) {
       if ((err as DOMException).name !== 'AbortError') {
         setError('No se pudo cargar la API.')
-        setPoems([])
+        setEntries([])
       }
     } finally {
       setIsLoading(false)
@@ -42,17 +51,17 @@ function useApiPoems() {
 
   useEffect(() => {
     const controller = new AbortController()
-    void loadPoems(controller.signal)
+    void loadEntries(controller.signal)
     return () => controller.abort()
   }, [])
 
-  return { poems, isLoading, error, reloadPoems: () => loadPoems() }
+  return { entries, isLoading, error, reloadEntries: () => loadEntries() }
 }
 
 export function AdminPage() {
-  const { poems, isLoading, error, reloadPoems } = useApiPoems()
+  const { entries, isLoading, error, reloadEntries } = useApiEntries()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [textType, setTextType] = useState<ContentKind>('poem')
+  const [textType, setTextType] = useState<ContentKind>('text')
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [editingSlug, setEditingSlug] = useState<string | null>(null)
@@ -60,7 +69,7 @@ export function AdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   function resetForm() {
-    setTextType('poem')
+    setTextType('text')
     setTitle('')
     setBody('')
     setEditingSlug(null)
@@ -72,17 +81,17 @@ export function AdminPage() {
     setIsModalOpen(true)
   }
 
-  function openEditModal(poem: ApiEntry) {
-    setEditingSlug(poem.slug)
-    setTextType(poem.type ?? 'poem')
-    setTitle(poem.title)
-    setBody(poem.body)
+  function openEditModal(entry: ApiEntry) {
+    setEditingSlug(entry.slug)
+    setTextType(toContentKind(entry.type))
+    setTitle(entry.title)
+    setBody(entry.body)
     setSubmitError(null)
     setIsModalOpen(true)
   }
 
   async function handleDelete(slug: string) {
-    const confirmed = window.confirm('Se borrara este poema. Quieres continuar?')
+    const confirmed = window.confirm('Se borrara esta pieza. Quieres continuar?')
     if (!confirmed) return
 
     try {
@@ -92,9 +101,9 @@ export function AdminPage() {
       if (!response.ok) {
         throw new Error(`La API devolvio ${response.status}`)
       }
-      await reloadPoems()
+      await reloadEntries()
     } catch {
-      setSubmitError('No se pudo borrar el poema en la API.')
+      setSubmitError('No se pudo borrar la pieza en la API.')
     }
   }
 
@@ -105,12 +114,12 @@ export function AdminPage() {
     const cleanBody = body.trim()
 
     if (!cleanTitle || !cleanBody) {
-      setSubmitError('Titulo y poema son obligatorios.')
+      setSubmitError('Titulo y contenido son obligatorios.')
       return
     }
 
     const isEditing = Boolean(editingSlug)
-    const baseSlug = slugify(cleanTitle) || 'poema'
+    const baseSlug = slugify(cleanTitle) || 'pieza'
     const slug = isEditing ? baseSlug : `${baseSlug}-${Date.now()}`
     const endpoint = isEditing
       ? `${POEMS_API_URL}/${encodeURIComponent(editingSlug as string)}`
@@ -128,7 +137,7 @@ export function AdminPage() {
         },
         body: JSON.stringify({
           slug,
-          type: textType,
+          type: toApiEntryType(textType),
           title: cleanTitle,
           body: cleanBody,
         }),
@@ -140,12 +149,12 @@ export function AdminPage() {
 
       resetForm()
       setIsModalOpen(false)
-      await reloadPoems()
+      await reloadEntries()
     } catch {
       setSubmitError(
         isEditing
-          ? 'No se pudo actualizar el poema en la API.'
-          : 'No se pudo guardar el poema en la API.',
+          ? 'No se pudo actualizar la pieza en la API.'
+          : 'No se pudo guardar la pieza en la API.',
       )
     } finally {
       setIsSubmitting(false)
@@ -153,7 +162,7 @@ export function AdminPage() {
   }
 
   return (
-    <main className="poetry-page">
+    <main className="content-page">
       <header className="hero">
         <p className="eyebrow">Panel de gestion</p>
         <h1>Admin</h1>
@@ -163,7 +172,7 @@ export function AdminPage() {
         <button className="upload-button" type="button" onClick={openCreateModal}>
           {siteConfig.labels.adminNewItem}
         </button>
-        <button className="ghost-button" type="button" onClick={() => void reloadPoems()}>
+        <button className="ghost-button" type="button" onClick={() => void reloadEntries()}>
           Recargar
         </button>
         <Link className="secondary-link" href="/">
@@ -175,29 +184,29 @@ export function AdminPage() {
       {error && !isLoading && <p className="intro">{error}</p>}
       {submitError && !isModalOpen && <p className="intro">{submitError}</p>}
 
-      <section className="poem-list" aria-label="Listado de poesias en admin">
-        {poems.map((poem) => (
+      <section className="entry-list" aria-label="Listado de contenido en admin">
+        {entries.map((entry) => (
           <article
-            className={`poem-card ${(poem.type ?? 'poem') === 'quote' ? 'quote-card' : 'poem-card--poem'}`}
-            key={poem.slug}
+            className={`entry-card ${isApiQuote(entry.type) ? 'quote-card' : 'entry-card--primary'}`}
+            key={entry.slug}
           >
-            <h2>{poem.title}</h2>
-            <div className="poem-lines">
-              {poem.body
+            <h2>{entry.title}</h2>
+            <div className="entry-lines">
+              {entry.body
                 .split(/\r?\n/)
                 .map((line) => line.trim())
                 .filter((line) => line.length > 0)
                 .map((line, index) => (
-                  <p key={`${poem.slug}-${index}`}>{line}</p>
+                  <p key={`${entry.slug}-${index}`}>{line}</p>
                 ))}
             </div>
             <div className="admin-card-actions">
               <button
                 className="icon-button"
                 type="button"
-                onClick={() => openEditModal(poem)}
+                onClick={() => openEditModal(entry)}
                 disabled={isSubmitting}
-                aria-label={`Editar ${poem.title}`}
+                aria-label={`Editar ${entry.title}`}
                 title="Editar"
               >
                 <SquarePen size={16} aria-hidden="true" />
@@ -205,9 +214,9 @@ export function AdminPage() {
               <button
                 className="icon-button icon-button--danger"
                 type="button"
-                onClick={() => void handleDelete(poem.slug)}
+                onClick={() => void handleDelete(entry.slug)}
                 disabled={isSubmitting}
-                aria-label={`Borrar ${poem.title}`}
+                aria-label={`Borrar ${entry.title}`}
                 title="Borrar"
               >
                 <Trash2 size={16} aria-hidden="true" />
@@ -227,14 +236,14 @@ export function AdminPage() {
           }}
         >
           <section
-            className="poem-modal"
+            className="entry-modal"
             role="dialog"
             aria-modal="true"
-            aria-labelledby="poem-modal-title"
+            aria-labelledby="entry-modal-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <header className="poem-modal__header">
-              <h2 id="poem-modal-title">{editingSlug ? 'Editar poema' : 'Subir poema'}</h2>
+            <header className="entry-modal__header">
+              <h2 id="entry-modal-title">{editingSlug ? 'Editar pieza' : 'Subir pieza'}</h2>
               <button
                 type="button"
                 className="modal-close"
@@ -248,21 +257,21 @@ export function AdminPage() {
               </button>
             </header>
 
-            <form className="poem-form" onSubmit={handleSubmit}>
-              <label htmlFor="poem-type">Tipo</label>
+            <form className="entry-form" onSubmit={handleSubmit}>
+              <label htmlFor="entry-type">Tipo</label>
               <select
-                id="poem-type"
+                id="entry-type"
                 name="type"
                 value={textType}
                 onChange={(event) => setTextType(event.target.value as ContentKind)}
               >
-                <option value="poem">{siteConfig.labels.adminTypePoem}</option>
+                <option value="text">{siteConfig.labels.adminTypePrimary}</option>
                 <option value="quote">{siteConfig.labels.adminTypeQuote}</option>
               </select>
 
-              <label htmlFor="poem-title">Titulo</label>
+              <label htmlFor="entry-title">Titulo</label>
               <input
-                id="poem-title"
+                id="entry-title"
                 name="title"
                 type="text"
                 placeholder="Ej: Niebla de enero"
@@ -270,12 +279,12 @@ export function AdminPage() {
                 onChange={(event) => setTitle(event.target.value)}
               />
 
-              <label htmlFor="poem-body">{siteConfig.labels.adminBody}</label>
+              <label htmlFor="entry-body">{siteConfig.labels.adminBody}</label>
               <textarea
-                id="poem-body"
+                id="entry-body"
                 name="body"
                 rows={7}
-                placeholder="Escribe aqui tus versos"
+                placeholder="Escribe aqui tu contenido"
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
               />

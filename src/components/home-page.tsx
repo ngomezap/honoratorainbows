@@ -21,28 +21,28 @@ async function loadContentEntries(): Promise<{ entries: ContentEntry[]; error: s
     const entries = normalizeContentEntries(payload)
 
     if (entries.length === 0) {
-      throw new Error('La API no devolvio poemas validos')
+      throw new Error('La API no devolvio contenido valido')
     }
 
     return { entries, error: null }
   } catch {
     return {
       entries: fallbackContentEntries,
-      error: 'No se pudo cargar la API, mostrando poemas locales.',
+      error: 'No se pudo cargar la API, mostrando contenido local.',
     }
   }
 }
 
-function PoemFeed({ entries }: { entries: ContentEntry[] }) {
+function EntryFeed({ entries }: { entries: ContentEntry[] }) {
   return (
-    <section className="poem-list" aria-label="Listado de poesias">
+    <section className="entry-list" aria-label="Listado de contenido">
       {entries.map((entry, entryIndex) => (
         <article
-          className={`poem-card ${entry.kind === 'quote' ? 'quote-card' : 'poem-card--poem'}`}
+          className={`entry-card ${entry.kind === 'quote' ? 'quote-card' : 'entry-card--primary'}`}
           key={`${entry.kind}-${entry.title ?? entryIndex}`}
         >
-          {entry.kind === 'poem' && entry.title && <h2>{entry.title}</h2>}
-          <div className="poem-lines">
+          {entry.kind === 'text' && entry.title && <h2>{entry.title}</h2>}
+          <div className="entry-lines">
             {entry.lines.map((line, index) => (
               <p key={`${entry.kind}-${entry.title ?? entryIndex}-${index}`}>{line}</p>
             ))}
@@ -65,7 +65,7 @@ export async function HomePage() {
   }
 
   return (
-    <main className="poetry-page">
+    <main className="content-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <header className="hero">
         <p className="eyebrow">{siteConfig.brand.eyebrow}</p>
@@ -75,7 +75,7 @@ export async function HomePage() {
 
       {error && <p className="intro">{error}</p>}
 
-      <PoemFeed entries={entries} />
+      <EntryFeed entries={entries} />
 
       <footer className="page-footer">
         {siteConfig.brand.footerLocation}

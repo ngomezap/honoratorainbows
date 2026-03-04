@@ -17,7 +17,7 @@ export type SiteConfig = {
     adminNewItem: string
     adminLoading: string
     adminPublicFeed: string
-    adminTypePoem: string
+    adminTypePrimary: string
     adminTypeQuote: string
     adminBody: string
   }
@@ -44,7 +44,7 @@ export const siteConfig: SiteConfig = {
     adminNewItem: 'Nuevo poema',
     adminLoading: 'Cargando poemas desde la API...',
     adminPublicFeed: 'Ver feed publico',
-    adminTypePoem: 'Poema',
+    adminTypePrimary: 'Poema',
     adminTypeQuote: 'Quote',
     adminBody: 'Poema',
   },
