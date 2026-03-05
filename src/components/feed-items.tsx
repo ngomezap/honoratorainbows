@@ -18,7 +18,7 @@ export function FeedEntryCard({ entry, entryKey, bindPlayer, onPlay }: FeedEntry
 
   return (
     <article className={cardClassName.trim()}>
-      {entry.title && <h2>{entry.title}</h2>}
+      {!isQuote && entry.title && <h2>{entry.title}</h2>}
 
       {lines && lines.length > 0 && (
         <div className="entry-lines">
