@@ -28,7 +28,7 @@ export type SiteConfig = {
 const DEFAULT_BASE_URL = 'https://honoratorainbows.com'
 
 export const siteConfig: SiteConfig = {
-  name: 'Honorato Rainbows',
+  name: 'H.Rainbows',
   description:
     'Cuaderno digital de versos breves: borradores, piezas terminadas y notas que aun respiran.',
   baseUrl: process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_BASE_URL,

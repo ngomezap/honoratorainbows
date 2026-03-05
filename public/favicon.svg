@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="HR favicon">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#706a3b"/>
-      <stop offset="1" stop-color="#e6d4ad"/>
+      <stop offset="0%" stop-color="#ff0033"/>
+      <stop offset="17%" stop-color="#ff7a00"/>
+      <stop offset="34%" stop-color="#ffd400"/>
+      <stop offset="51%" stop-color="#35c759"/>
+      <stop offset="68%" stop-color="#007aff"/>
+      <stop offset="85%" stop-color="#5856d6"/>
+      <stop offset="100%" stop-color="#af52de"/>
     </linearGradient>
   </defs>
   <rect width="64" height="64" rx="14" fill="url(#bg)"/>
