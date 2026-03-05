@@ -1,7 +1,7 @@
-import { contentEntries, type ContentEntry, type ContentKind } from '@/data/content'
+import type { QuoteFeedEntry, TextFeedEntry } from '@/lib/feed-entry'
 
-export type { ContentEntry, ContentKind }
-export { contentEntries as fallbackContentEntries }
+export type ContentKind = 'text' | 'quote'
+export type ContentEntry = TextFeedEntry | QuoteFeedEntry
 
 type ApiEntryType = 'poem' | 'quote'
 

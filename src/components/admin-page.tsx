@@ -1,10 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { SquarePen, Trash2 } from 'lucide-react'
 import {
-  normalizeApiEntries,
   entriesApiUrl,
   isApiQuote,
   slugify,
@@ -13,55 +12,20 @@ import {
   type ApiEntry,
   type ContentKind,
 } from '@/lib/content'
+import { useApiEntries } from '@/hooks/use-api-entries'
 import { siteConfig } from '@/lib/site-config'
 
-const POEMS_API_URL = entriesApiUrl()
-
-function useApiEntries() {
-  const [entries, setEntries] = useState<ApiEntry[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  async function loadEntries(signal?: AbortSignal) {
-    try {
-      setIsLoading(true)
-      setError(null)
-
-      const response = await fetch(POEMS_API_URL, { signal })
-      if (!response.ok) {
-        throw new Error(`La API devolvio ${response.status}`)
-      }
-
-      const payload = (await response.json()) as unknown
-      const normalized = normalizeApiEntries(payload)
-      if (normalized.length === 0) {
-        throw new Error('La API no devolvio contenido valido')
-      }
-
-      setEntries(normalized)
-    } catch (err) {
-      if ((err as DOMException).name !== 'AbortError') {
-        setError('No se pudo cargar la API.')
-        setEntries([])
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    const controller = new AbortController()
-    void loadEntries(controller.signal)
-    return () => controller.abort()
-  }, [])
-
-  return { entries, isLoading, error, reloadEntries: () => loadEntries() }
-}
+const ENTRIES_API_URL = entriesApiUrl()
 
 export function AdminPage() {
+  const profileFeed = siteConfig.feeds[siteConfig.profile]
+  const allowedTypes = profileFeed.items.filter(
+    (kind): kind is ContentKind => kind === 'text' || kind === 'quote',
+  )
+  const defaultType: ContentKind = allowedTypes[0] ?? 'text'
   const { entries, isLoading, error, reloadEntries } = useApiEntries()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [textType, setTextType] = useState<ContentKind>('text')
+  const [textType, setTextType] = useState<ContentKind>(defaultType)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [editingSlug, setEditingSlug] = useState<string | null>(null)
@@ -69,7 +33,7 @@ export function AdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   function resetForm() {
-    setTextType('text')
+    setTextType(defaultType)
     setTitle('')
     setBody('')
     setEditingSlug(null)
@@ -91,11 +55,11 @@ export function AdminPage() {
   }
 
   async function handleDelete(slug: string) {
-    const confirmed = window.confirm('Se borrara esta pieza. Quieres continuar?')
+    const confirmed = window.confirm('Se borrara esta entrada. Quieres continuar?')
     if (!confirmed) return
 
     try {
-      const response = await fetch(`${POEMS_API_URL}/${encodeURIComponent(slug)}`, {
+      const response = await fetch(`${ENTRIES_API_URL}/${encodeURIComponent(slug)}`, {
         method: 'DELETE',
       })
       if (!response.ok) {
@@ -103,7 +67,7 @@ export function AdminPage() {
       }
       await reloadEntries()
     } catch {
-      setSubmitError('No se pudo borrar la pieza en la API.')
+      setSubmitError('No se pudo borrar la entrada en la API.')
     }
   }
 
@@ -117,13 +81,17 @@ export function AdminPage() {
       setSubmitError('Titulo y contenido son obligatorios.')
       return
     }
+    if (!allowedTypes.includes(textType)) {
+      setSubmitError('El tipo seleccionado no esta permitido para este perfil.')
+      return
+    }
 
     const isEditing = Boolean(editingSlug)
-    const baseSlug = slugify(cleanTitle) || 'pieza'
+    const baseSlug = slugify(cleanTitle) || 'entry'
     const slug = isEditing ? baseSlug : `${baseSlug}-${Date.now()}`
     const endpoint = isEditing
-      ? `${POEMS_API_URL}/${encodeURIComponent(editingSlug as string)}`
-      : POEMS_API_URL
+      ? `${ENTRIES_API_URL}/${encodeURIComponent(editingSlug as string)}`
+      : ENTRIES_API_URL
     const method = isEditing ? 'PUT' : 'POST'
 
     try {
@@ -153,8 +121,8 @@ export function AdminPage() {
     } catch {
       setSubmitError(
         isEditing
-          ? 'No se pudo actualizar la pieza en la API.'
-          : 'No se pudo guardar la pieza en la API.',
+          ? 'No se pudo actualizar la entrada en la API.'
+          : 'No se pudo guardar la entrada en la API.',
       )
     } finally {
       setIsSubmitting(false)
@@ -243,7 +211,7 @@ export function AdminPage() {
             onClick={(event) => event.stopPropagation()}
           >
             <header className="entry-modal__header">
-              <h2 id="entry-modal-title">{editingSlug ? 'Editar pieza' : 'Subir pieza'}</h2>
+              <h2 id="entry-modal-title">{editingSlug ? 'Editar entrada' : 'Subir entrada'}</h2>
               <button
                 type="button"
                 className="modal-close"
@@ -264,10 +232,17 @@ export function AdminPage() {
                 name="type"
                 value={textType}
                 onChange={(event) => setTextType(event.target.value as ContentKind)}
+                disabled={allowedTypes.length === 0}
               >
-                <option value="text">{siteConfig.labels.adminTypePrimary}</option>
-                <option value="quote">{siteConfig.labels.adminTypeQuote}</option>
+                {allowedTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type === 'text' ? siteConfig.labels.adminTypePrimary : siteConfig.labels.adminTypeQuote}
+                  </option>
+                ))}
               </select>
+              {allowedTypes.length === 0 && (
+                <p className="intro">El perfil actual no admite tipos editables en este panel.</p>
+              )}
 
               <label htmlFor="entry-title">Titulo</label>
               <input

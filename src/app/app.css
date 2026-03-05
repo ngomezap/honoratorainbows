@@ -239,33 +239,33 @@ h2 {
   margin-top: 0.3rem;
 }
 
-.piece-hero {
+.audio-hero {
   margin-top: 2.4rem;
   margin-bottom: 1.3rem;
 }
 
-.piece-hero h2 {
+.audio-hero h2 {
   margin: 0.6rem 0 0.7rem;
   font-size: clamp(1.3rem, 4vw, 1.8rem);
 }
 
-.piece-list {
+.audio-list {
   margin-top: 0;
 }
 
-.piece-card {
+.audio-card {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
 }
 
-.piece-description {
+.entry-description {
   margin: 0;
   color: var(--entry-text);
   line-height: 1.55;
 }
 
-.piece-audio {
+.audio-player {
   width: 100%;
 }
 

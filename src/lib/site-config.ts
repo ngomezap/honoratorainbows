@@ -1,5 +1,13 @@
+import type { FeedKind } from '@/lib/feed-entry'
+
 export type SiteTheme = 'poet' | 'producer-dark' | 'musician' | 'music' | 'photo'
 export type SiteProfile = 'poet' | 'producer'
+export type FeedItemKind = FeedKind
+
+export type ProfileFeedConfig = {
+  items: FeedItemKind[]
+  ariaLabel: string
+}
 
 export type SiteConfig = {
   name: string
@@ -23,6 +31,7 @@ export type SiteConfig = {
     adminTypeQuote: string
     adminBody: string
   }
+  feeds: Record<SiteProfile, ProfileFeedConfig>
 }
 
 const DEFAULT_BASE_URL = 'https://honoratorainbows.com'
@@ -34,7 +43,7 @@ export const siteConfig: SiteConfig = {
   baseUrl: process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_BASE_URL,
   locale: 'es_ES',
   language: 'es',
-  theme: 'poet',
+  theme: 'producer-dark',
   profile: 'poet',
   brand: {
     eyebrow: 'Cuaderno digital',
@@ -50,6 +59,16 @@ export const siteConfig: SiteConfig = {
     adminTypePrimary: 'Poema',
     adminTypeQuote: 'Quote',
     adminBody: 'Poema',
+  },
+  feeds: {
+    poet: {
+      items: ['quote', 'text'],
+      ariaLabel: 'Listado de contenido',
+    },
+    producer: {
+      items: ['audio'],
+      ariaLabel: 'Listado de audios musicales',
+    },
   },
 }
 

@@ -1,75 +1,25 @@
 import Link from 'next/link'
-import { PieceFeed } from '@/components/piece-feed'
-import { pieces } from '@/data/pieces'
-import {
-  entriesApiUrl,
-  fallbackContentEntries,
-  normalizeContentEntries,
-  type ContentEntry,
-} from '@/lib/content'
+import { Feed } from '@/components/feed'
+import type { FeedEntry } from '@/lib/feed-entry'
+import { toContentEntry } from '@/lib/content'
+import { loadApiEntries } from '@/lib/entries-loader'
 import { siteConfig, siteUrl } from '@/lib/site-config'
 
-async function loadPoetEntries(): Promise<{ entries: ContentEntry[]; error: string | null }> {
-  try {
-    const response = await fetch(new URL(entriesApiUrl(), siteUrl()).toString(), {
-      next: { revalidate: 60 },
-    })
+export async function HomePage() {
+  const profileFeed = siteConfig.feeds[siteConfig.profile]
+  const needsContentEntries = profileFeed.items.includes('text') || profileFeed.items.includes('quote')
+  let entries: FeedEntry[] = []
+  let error: string | null = null
 
-    if (!response.ok) {
-      throw new Error(`La API devolvio ${response.status}`)
-    }
-
-    const payload = (await response.json()) as unknown
-    const entries = normalizeContentEntries(payload)
-
-    if (entries.length === 0) {
-      throw new Error('La API no devolvio contenido valido')
-    }
-
-    return { entries, error: null }
-  } catch {
-    return {
-      entries: fallbackContentEntries,
-      error: 'No se pudo cargar la API, mostrando contenido local.',
+  if (needsContentEntries) {
+    try {
+      const apiEntries = await loadApiEntries({ baseUrl: siteUrl(), revalidate: 60 })
+      entries = apiEntries.map(toContentEntry)
+    } catch {
+      error = 'No se pudo cargar la API.'
     }
   }
-}
 
-function EntryFeed({ entries }: { entries: ContentEntry[] }) {
-  return (
-    <section className="entry-list" aria-label="Listado de contenido">
-      {entries.map((entry, entryIndex) => (
-        <article
-          className={`entry-card ${entry.kind === 'quote' ? 'quote-card' : 'entry-card--primary'}`}
-          key={`${entry.kind}-${entry.title ?? entryIndex}`}
-        >
-          {entry.kind === 'text' && entry.title && <h2>{entry.title}</h2>}
-          <div className="entry-lines">
-            {entry.lines.map((line, index) => (
-              <p key={`${entry.kind}-${entry.title ?? entryIndex}-${index}`}>{line}</p>
-            ))}
-          </div>
-        </article>
-      ))}
-    </section>
-  )
-}
-
-
-function PoetFeed({ entries, error }: { entries: ContentEntry[]; error: string | null }) {
-  return (
-    <>
-      {error && <p className="intro">{error}</p>}
-      <EntryFeed entries={entries} />
-    </>
-  )
-}
-
-export async function HomePage() {
-  const isProducerProfile = siteConfig.profile === 'producer'
-  const { entries, error } = isProducerProfile
-    ? { entries: [] as ContentEntry[], error: null }
-    : await loadPoetEntries()
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -88,7 +38,9 @@ export async function HomePage() {
         <p className="intro">{siteConfig.brand.heroIntro}</p>
       </header>
 
-      {isProducerProfile ? <PieceFeed pieces={pieces} /> : <PoetFeed entries={entries} error={error} />}
+      {error && <p className="intro">{error}</p>}
+
+      <Feed profile={siteConfig.profile} entries={entries} />
 
       <footer className="page-footer">
         {siteConfig.brand.footerLocation}
