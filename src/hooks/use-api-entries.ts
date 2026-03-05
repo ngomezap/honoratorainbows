@@ -1,22 +1,31 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import type { ApiEntry } from '@/lib/content'
-import { loadApiEntries } from '@/lib/entries-loader'
+import { useCallback, useEffect, useState } from 'react'
+import { loadApiEntries, loadMediaEntries } from '@/lib/entries-loader'
+import { fromApiEntry, fromMediaEntry, type AdminEntry } from '@/lib/admin-entry'
+import type { SiteProfile } from '@/lib/site-config'
 
-export function useApiEntries() {
-  const [entries, setEntries] = useState<ApiEntry[]>([])
+export function useApiEntries(profile: SiteProfile) {
+  const [entries, setEntries] = useState<AdminEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  async function reloadEntries(signal?: AbortSignal) {
+  const reloadEntries = useCallback(async (signal?: AbortSignal) => {
     try {
       setIsLoading(true)
       setError(null)
 
-      const loadedEntries = await loadApiEntries({ signal })
-      console.log(loadedEntries)
-      setEntries(loadedEntries)
+      if (profile === 'poet') {
+        const loadedEntries = await loadApiEntries({ signal })
+        setEntries(loadedEntries.map(fromApiEntry))
+      } else {
+        const loadedEntries = await loadMediaEntries({ signal })
+        const onlyProfileEntries =
+          profile === 'producer'
+            ? loadedEntries.filter((entry) => entry.kind === 'audio')
+            : loadedEntries.filter((entry) => entry.kind === 'photo')
+        setEntries(onlyProfileEntries.map(fromMediaEntry))
+      }
     } catch (err) {
       if ((err as DOMException).name !== 'AbortError') {
         setError('No se pudo cargar la API.')
@@ -25,13 +34,13 @@ export function useApiEntries() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [profile])
 
   useEffect(() => {
     const controller = new AbortController()
     void reloadEntries(controller.signal)
     return () => controller.abort()
-  }, [])
+  }, [reloadEntries])
 
   return { entries, isLoading, error, reloadEntries }
 }

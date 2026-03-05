@@ -259,10 +259,23 @@ h2 {
   gap: 0.7rem;
 }
 
+.photo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
 .entry-description {
   margin: 0;
   color: var(--entry-text);
   line-height: 1.55;
+}
+
+.entry-photo {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  object-fit: cover;
 }
 
 .audio-player {

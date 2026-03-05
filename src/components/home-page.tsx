@@ -2,12 +2,14 @@ import Link from 'next/link'
 import { Feed } from '@/components/feed'
 import type { FeedEntry } from '@/lib/feed-entry'
 import { toContentEntry } from '@/lib/content'
-import { loadApiEntries } from '@/lib/entries-loader'
+import { toMediaFeedEntry } from '@/lib/media-content'
+import { loadApiEntries, loadMediaEntries } from '@/lib/entries-loader'
 import { siteConfig, siteUrl } from '@/lib/site-config'
 
 export async function HomePage() {
   const profileFeed = siteConfig.feeds[siteConfig.profile]
   const needsContentEntries = profileFeed.items.includes('text') || profileFeed.items.includes('quote')
+  const needsMediaEntries = profileFeed.items.includes('audio') || profileFeed.items.includes('photo')
   let entries: FeedEntry[] = []
   let error: string | null = null
 
@@ -15,6 +17,13 @@ export async function HomePage() {
     try {
       const apiEntries = await loadApiEntries({ baseUrl: siteUrl(), revalidate: 60 })
       entries = apiEntries.map(toContentEntry)
+    } catch {
+      error = 'No se pudo cargar la API.'
+    }
+  } else if (needsMediaEntries) {
+    try {
+      const mediaEntries = await loadMediaEntries({ baseUrl: siteUrl(), revalidate: 60 })
+      entries = mediaEntries.map(toMediaFeedEntry)
     } catch {
       error = 'No se pudo cargar la API.'
     }

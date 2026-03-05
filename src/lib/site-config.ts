@@ -1,7 +1,7 @@
 import type { FeedKind } from '@/lib/feed-entry'
 
 export type SiteTheme = 'poet' | 'producer-dark' | 'musician' | 'music' | 'photo'
-export type SiteProfile = 'poet' | 'producer'
+export type SiteProfile = 'poet' | 'producer' | 'photographer' | 'fotografo'
 export type FeedItemKind = FeedKind
 
 export type ProfileFeedConfig = {
@@ -24,7 +24,9 @@ export type SiteConfig = {
     footerLocation: string
   }
   labels: {
-    adminNewItem: string
+    adminNewPoem: string
+    adminNewAudio: string
+    adminNewPhoto: string
     adminLoading: string
     adminPublicFeed: string
     adminTypePrimary: string
@@ -53,8 +55,10 @@ export const siteConfig: SiteConfig = {
     footerLocation: 'Santander, palabras entre la bruma y la montana.',
   },
   labels: {
-    adminNewItem: 'Nuevo poema',
-    adminLoading: 'Cargando poemas desde la API...',
+    adminNewPoem: 'Nuevo poema',
+    adminNewAudio: 'Nuevo audio',
+    adminNewPhoto: 'Nueva foto',
+    adminLoading: 'Cargando contenido desde la API...',
     adminPublicFeed: 'Ver feed publico',
     adminTypePrimary: 'Poema',
     adminTypeQuote: 'Quote',
@@ -68,6 +72,14 @@ export const siteConfig: SiteConfig = {
     producer: {
       items: ['audio'],
       ariaLabel: 'Listado de audios musicales',
+    },
+    photographer: {
+      items: ['photo'],
+      ariaLabel: 'Listado de fotografias',
+    },
+    fotografo: {
+      items: ['photo'],
+      ariaLabel: 'Listado de fotografias',
     },
   },
 }

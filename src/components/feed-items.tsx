@@ -1,4 +1,5 @@
 import type { FeedEntry } from '@/lib/feed-entry'
+import Image from 'next/image'
 
 type FeedEntryCardProps = {
   entry: FeedEntry
@@ -10,11 +11,13 @@ type FeedEntryCardProps = {
 export function FeedEntryCard({ entry, entryKey, bindPlayer, onPlay }: FeedEntryCardProps) {
   const isQuote = entry.kind === 'quote'
   const isAudio = entry.kind === 'audio'
-  const cardClassName = `entry-card ${isQuote ? 'quote-card' : 'entry-card--primary'} ${isAudio ? 'audio-card' : ''}`
+  const isPhoto = entry.kind === 'photo'
+  const cardClassName = `entry-card ${isQuote ? 'quote-card' : 'entry-card--primary'} ${isAudio ? 'audio-card' : ''} ${isPhoto ? 'photo-card' : ''}`
   const audioTitle = entry.title ?? entryKey
   const lines = 'lines' in entry ? entry.lines : undefined
   const description = 'description' in entry ? entry.description : undefined
   const audioUrl = 'audioUrl' in entry ? entry.audioUrl : undefined
+  const imageUrl = 'imageUrl' in entry ? entry.imageUrl : undefined
 
   return (
     <article className={cardClassName.trim()}>
@@ -46,6 +49,19 @@ export function FeedEntryCard({ entry, entryKey, bindPlayer, onPlay }: FeedEntry
       {isAudio && !audioUrl && (
         <p className="pending-audio">Audio pendiente de publicar</p>
       )}
+
+      {isPhoto && imageUrl && (
+        <Image
+          className="entry-photo"
+          src={imageUrl}
+          alt={description?.trim() || entry.title || 'Fotografia'}
+          width={1200}
+          height={900}
+          unoptimized
+        />
+      )}
+
+      {isPhoto && !imageUrl && <p className="pending-audio">Imagen pendiente de publicar</p>}
     </article>
   )
 }

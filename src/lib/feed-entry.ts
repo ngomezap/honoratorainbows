@@ -1,4 +1,4 @@
-export type KnownFeedKind = 'text' | 'quote' | 'audio'
+export type KnownFeedKind = 'text' | 'quote' | 'audio' | 'photo'
 export type FeedKind = KnownFeedKind | (string & {})
 
 export interface FeedEntryBase<K extends FeedKind = FeedKind> {
@@ -23,10 +23,17 @@ export interface AudioFeedEntry extends FeedEntryBase<'audio'> {
   audioUrl?: string
 }
 
+export interface PhotoFeedEntry extends FeedEntryBase<'photo'> {
+  title?: string
+  description?: string
+  imageUrl?: string
+}
+
 export interface GenericFeedEntry extends FeedEntryBase {
   lines?: string[]
   description?: string
   audioUrl?: string
+  imageUrl?: string
 }
 
-export type FeedEntry = TextFeedEntry | QuoteFeedEntry | AudioFeedEntry | GenericFeedEntry
+export type FeedEntry = TextFeedEntry | QuoteFeedEntry | AudioFeedEntry | PhotoFeedEntry | GenericFeedEntry
